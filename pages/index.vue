@@ -1,150 +1,181 @@
 <template>
     <div class="home-page">
-        <div class="home-content">
-            <div class="hero-section">
-                <img src="/LL-logo-full-wht.svg" alt="Lovelace" class="hero-logo" />
-                <h1 class="hero-title">{{ appName || 'Welcome to Aether' }}</h1>
-                <p class="hero-subtitle">Your AI-powered workspace is ready.</p>
-            </div>
+        <v-container fluid class="pa-0">
+            <v-row no-gutters>
+                <v-col cols="12" md="9" class="main-content">
+                    <div class="px-4 py-6">
+                        <div class="d-flex align-center justify-space-between mb-6">
+                            <div>
+                                <h1 class="text-h3 font-weight-bold mb-2">Live Feed</h1>
+                                <p class="text-grey">
+                                    Real-time news intelligence across markets and industries
+                                </p>
+                            </div>
 
-            <div class="getting-started">
-                <h2 class="section-title">Getting Started</h2>
-                <div class="steps-grid">
-                    <div class="step-item">
-                        <span class="step-number">1</span>
-                        <div>
-                            <div class="step-title">Describe what you want</div>
-                            <div class="step-desc">
-                                Edit <code>DESIGN.md</code> with your project vision. The AI agent
-                                reads this first to understand what to build.
+                            <v-btn
+                                icon="mdi-refresh"
+                                variant="text"
+                                :loading="loading"
+                                @click="refresh"
+                            />
+                        </div>
+
+                        <CategoryTabs v-model="selectedCategory" class="mb-6" />
+
+                        <div v-if="loading && articles.length === 0" class="loading-state">
+                            <v-skeleton-loader type="card" class="mb-4" />
+                            <v-skeleton-loader type="card" class="mb-4" />
+                            <v-skeleton-loader type="card" class="mb-4" />
+                        </div>
+
+                        <div v-else-if="error" class="error-state">
+                            <v-alert type="error" variant="outlined">
+                                {{ error }}
+                            </v-alert>
+                        </div>
+
+                        <div v-else-if="articles.length === 0" class="empty-state">
+                            <v-card variant="outlined" class="pa-8 text-center">
+                                <v-icon
+                                    icon="mdi-newspaper-variant-outline"
+                                    size="64"
+                                    color="grey"
+                                    class="mb-4"
+                                />
+                                <div class="text-h6 text-grey">No news available</div>
+                                <div class="text-caption text-grey">
+                                    Check back soon for updates
+                                </div>
+                            </v-card>
+                        </div>
+
+                        <div v-else>
+                            <HeroStoryCard v-if="heroStory" :article="heroStory" class="mb-6" />
+
+                            <div class="news-feed">
+                                <NewsCard
+                                    v-for="article in feedArticles"
+                                    :key="article.neid"
+                                    :article="article"
+                                    class="mb-4"
+                                />
                             </div>
                         </div>
-                    </div>
-                    <div class="step-item">
-                        <span class="step-number">2</span>
-                        <div>
-                            <div class="step-title">Build it</div>
-                            <div class="step-desc">
-                                Run <code>/build_my_app</code> in Cursor. The agent will design and
-                                implement your app based on the brief.
-                            </div>
+
+                        <div v-if="lastRefresh" class="text-center text-caption text-grey mt-4">
+                            Last updated {{ refreshTime }}
                         </div>
                     </div>
-                    <div class="step-item">
-                        <span class="step-number">3</span>
-                        <div>
-                            <div class="step-title">Deploy</div>
-                            <div class="step-desc">
-                                Push to main to auto-deploy on Vercel. Use
-                                <code>/deploy_agent</code> or <code>/deploy_mcp</code> for backend
-                                services.
-                            </div>
-                        </div>
+                </v-col>
+
+                <v-col cols="12" md="3" class="sidebar-content d-none d-md-block">
+                    <div class="pa-4">
+                        <TrendingSidebar />
                     </div>
-                </div>
-            </div>
-        </div>
+                </v-col>
+            </v-row>
+        </v-container>
     </div>
 </template>
 
 <script setup lang="ts">
-    const { appName } = useAppInfo();
+    import { useNewsData } from '~/composables/useNewsData';
+    import { Pref } from '~/composables/usePrefsStore';
+
+    const { articles, loading, error, lastRefresh, fetchLatestNews } = useNewsData();
+    const { userId } = useUserState();
+    const { appId } = useRuntimeConfig().public;
+
+    const categoryPref = new Pref<string>(
+        `/users/${userId.value}/apps/${appId}/settings/pulse`,
+        'selectedCategory',
+        'All'
+    );
+
+    const selectedCategory = ref('All');
+
+    watch(selectedCategory, (newCategory) => {
+        categoryPref.set(newCategory);
+        fetchLatestNews(50, newCategory);
+    });
+
+    const heroStory = computed(() => {
+        if (articles.value.length === 0) return null;
+        return articles.value.reduce((best, current) => {
+            const bestScore = Math.abs(best.sentiment) + best.entities.length;
+            const currentScore = Math.abs(current.sentiment) + current.entities.length;
+            return currentScore > bestScore ? current : best;
+        }, articles.value[0]);
+    });
+
+    const feedArticles = computed(() => {
+        if (!heroStory.value) return articles.value;
+        return articles.value.filter((a) => a.neid !== heroStory.value!.neid);
+    });
+
+    const refreshTime = computed(() => {
+        if (!lastRefresh.value) return '';
+
+        const now = new Date();
+        const diff = now.getTime() - lastRefresh.value.getTime();
+        const seconds = Math.floor(diff / 1000);
+
+        if (seconds < 10) return 'just now';
+        if (seconds < 60) return `${seconds}s ago`;
+
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+
+        const hours = Math.floor(minutes / 60);
+        return `${hours}h ago`;
+    });
+
+    function refresh() {
+        fetchLatestNews(50, selectedCategory.value);
+    }
+
+    onMounted(async () => {
+        await categoryPref.initialize();
+        selectedCategory.value = categoryPref.r.value;
+
+        fetchLatestNews(50, selectedCategory.value);
+
+        const intervalId = setInterval(() => {
+            fetchLatestNews(50, selectedCategory.value);
+        }, 60 * 1000);
+
+        onUnmounted(() => {
+            clearInterval(intervalId);
+        });
+    });
 </script>
 
 <style scoped>
     .home-page {
-        height: 100%;
-        overflow-y: auto;
-        display: flex;
-        justify-content: center;
-        padding: 48px 24px;
+        min-height: 100vh;
+        background: #0f1419;
     }
 
-    .home-content {
-        max-width: 720px;
-        width: 100%;
+    .main-content {
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .hero-section {
-        text-align: center;
-        margin-bottom: 48px;
+    .sidebar-content {
+        background: rgba(0, 0, 0, 0.2);
     }
 
-    .hero-logo {
-        height: 2rem;
-        width: auto;
-        margin-bottom: 24px;
-        opacity: 0.6;
+    .news-feed {
+        animation: fadeIn 0.3s ease-in;
     }
 
-    .hero-title {
-        font-family: var(--font-headline);
-        font-weight: 400;
-        font-size: 2rem;
-        letter-spacing: 0.02em;
-        margin-bottom: 8px;
-    }
-
-    .hero-subtitle {
-        color: var(--lv-silver);
-        font-size: 1.1rem;
-    }
-
-    .getting-started {
-        margin-bottom: 48px;
-    }
-
-    .section-title {
-        font-family: var(--font-headline);
-        font-weight: 400;
-        font-size: 1.1rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: var(--lv-silver);
-        margin-bottom: 20px;
-    }
-
-    .steps-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .step-item {
-        display: flex;
-        gap: 16px;
-        align-items: flex-start;
-    }
-
-    .step-number {
-        flex-shrink: 0;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: var(--lv-surface);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        color: var(--lv-green);
-        margin-top: 2px;
-    }
-
-    .step-title {
-        font-weight: 500;
-        margin-bottom: 2px;
-    }
-
-    .step-desc {
-        color: var(--lv-silver);
-        font-size: 0.875rem;
-        line-height: 1.4;
-    }
-
-    .step-desc code {
-        font-size: 0.85em;
-        padding: 1px 5px;
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
