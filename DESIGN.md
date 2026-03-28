@@ -63,12 +63,12 @@ Pulse is not another RSS reader. It's a **signal-over-noise** news experience: a
 
 ## Pages
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/` | Home / Live Feed | Hero story + streaming news cards + category tabs |
-| `/story/:id` | Story Detail | Full article view with entities + sentiment |
-| `/entity/:id` | Entity Spotlight | Entity profile, news timeline, sentiment chart |
-| `/search` | Search Results | Grouped results for stories and entities |
+| Route         | Page             | Description                                       |
+| ------------- | ---------------- | ------------------------------------------------- |
+| `/`           | Home / Live Feed | Hero story + streaming news cards + category tabs |
+| `/story/:id`  | Story Detail     | Full article view with entities + sentiment       |
+| `/entity/:id` | Entity Spotlight | Entity profile, news timeline, sentiment chart    |
+| `/search`     | Search Results   | Grouped results for stories and entities          |
 
 ## Technical Notes
 
@@ -84,4 +84,4 @@ Project just created. Run `/build_my_app` in Cursor to start building.
 
 ## Modules
 
-*None yet — the agent will populate this as features are built.*
+_None yet — the agent will populate this as features are built._
