@@ -78,29 +78,14 @@ export function useNewsData() {
                 throw new Error('Unable to find article entity type in schema');
             }
 
-            let expression: any = {
+            // Simple is_type expression to get all articles
+            // TODO: Category filtering requires different approach - topics may not be indexed for filtering
+            const expression: any = {
                 type: 'is_type',
                 is_type: {
                     fid: articlePid,
                 },
             };
-
-            if (category && category !== 'All') {
-                expression = {
-                    type: 'and',
-                    and: [
-                        expression,
-                        {
-                            type: 'comparison',
-                            comparison: {
-                                operator: 'string_like',
-                                pid: topicPid,
-                                value: category,
-                            },
-                        },
-                    ],
-                };
-            }
 
             const result = await client.findEntities({
                 expression: JSON.stringify(expression),
