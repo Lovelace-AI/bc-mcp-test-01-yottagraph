@@ -249,7 +249,7 @@
             const flavors = schema.schema?.flavors ?? (schema as any).flavors ?? [];
 
             const pidMap = new Map(properties.map((p: any) => [p.name, p.pid]));
-            const fidMap = new Map(flavors.map((f: any) => [f.fid, f.name]));
+            const fidMap = new Map(flavors.map((f: any) => [f.findex, f.name]));
             const namePid = pidMap.get('name') ?? 8;
 
             const propsResult = await client.getPropertyValues({
@@ -423,7 +423,7 @@
 
             const schema = await client.getSchema();
             const flavors = schema.schema?.flavors ?? (schema as any).flavors ?? [];
-            const fidMap = new Map(flavors.map((f: any) => [f.fid, f.name]));
+            const fidMap = new Map(flavors.map((f: any) => [f.findex, f.name]));
 
             const entityPropsResult = await client.getPropertyValues({
                 eids: JSON.stringify(topRelated),

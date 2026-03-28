@@ -41,7 +41,7 @@ export function useNewsData() {
 
         const pidMap = new Map(properties.map((p: any) => [p.name, p.pid]));
 
-        articlePid = flavors.find((f: any) => f.name === 'article')?.fid ?? null;
+        articlePid = flavors.find((f: any) => f.name === 'article')?.findex ?? null;
         titlePid = pidMap.get('title') ?? null;
         sentimentPid = pidMap.get('sentiment') ?? null;
         appearsInPid = pidMap.get('appears_in') ?? null;
