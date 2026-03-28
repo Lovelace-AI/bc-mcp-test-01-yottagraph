@@ -62,10 +62,10 @@ export function useEntitySearch() {
             if (entityNeids.length > 0) {
                 const propsResult = await client.getPropertyValues({
                     eids: JSON.stringify(entityNeids),
-                    pids: JSON.stringify([namePid, 0]),
+                    pids: JSON.stringify([namePid]),
                 });
 
-                const entityMap = new Map<string, { name?: string; fid?: number }>();
+                const entityMap = new Map<string, { name?: string }>();
                 for (const value of propsResult.values ?? []) {
                     if (!entityMap.has(value.eid)) {
                         entityMap.set(value.eid, {});
@@ -74,8 +74,22 @@ export function useEntitySearch() {
 
                     if (value.pid === namePid) {
                         data.name = String(value.value);
-                    } else if (value.pid === 0) {
-                        data.fid = Number(value.value);
+                    }
+                }
+
+                const flavorPid = pidMap.get('flavor') ?? null;
+                if (flavorPid) {
+                    const flavorResult = await client.getPropertyValues({
+                        eids: JSON.stringify(entityNeids),
+                        pids: JSON.stringify([flavorPid]),
+                    });
+
+                    for (const value of flavorResult.values ?? []) {
+                        const data = entityMap.get(value.eid);
+                        if (data) {
+                            const fid = Number(value.value);
+                            (data as any).fid = fid;
+                        }
                     }
                 }
 
@@ -85,7 +99,7 @@ export function useEntitySearch() {
                     .map(([neid, data]) => ({
                         neid,
                         name: data.name ?? 'Unknown',
-                        flavor: fidToFlavor.get(data.fid ?? 0) ?? 'unknown',
+                        flavor: fidToFlavor.get((data as any).fid ?? 0) ?? 'unknown',
                         score: 1.0,
                     }))
                     .filter((e) => e.name !== 'Unknown' && e.flavor !== 'article');
@@ -95,28 +109,23 @@ export function useEntitySearch() {
             if (articleFid && titlePid) {
                 const storyResults = await client.findEntities({
                     expression: JSON.stringify({
-                        type: 'conjunction',
-                        conjunction: {
-                            operator: 'and',
-                            expressions: [
-                                {
-                                    type: 'comparison',
-                                    comparison: {
-                                        operator: 'eq',
-                                        pid: 0,
-                                        value: articleFid,
-                                    },
+                        type: 'and',
+                        and: [
+                            {
+                                type: 'is_type',
+                                is_type: {
+                                    fid: articleFid,
                                 },
-                                {
-                                    type: 'comparison',
-                                    comparison: {
-                                        operator: 'string_like',
-                                        pid: titlePid,
-                                        value: query,
-                                    },
+                            },
+                            {
+                                type: 'comparison',
+                                comparison: {
+                                    operator: 'string_like',
+                                    pid: titlePid,
+                                    value: query,
                                 },
-                            ],
-                        },
+                            },
+                        ],
                     }),
                     limit: 10,
                 });

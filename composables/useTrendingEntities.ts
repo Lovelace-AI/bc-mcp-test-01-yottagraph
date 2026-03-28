@@ -37,11 +37,9 @@ export function useTrendingEntities() {
 
             const articlesResult = await client.findEntities({
                 expression: JSON.stringify({
-                    type: 'comparison',
-                    comparison: {
-                        operator: 'eq',
-                        pid: 0,
-                        value: articleFid,
+                    type: 'is_type',
+                    is_type: {
+                        fid: articleFid,
                     },
                 }),
                 limit: 200,

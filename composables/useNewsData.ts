@@ -65,31 +65,26 @@ export function useNewsData() {
             }
 
             let expression: any = {
-                type: 'comparison',
-                comparison: {
-                    operator: 'eq',
-                    pid: 0,
-                    value: articlePid,
+                type: 'is_type',
+                is_type: {
+                    fid: articlePid,
                 },
             };
 
             if (category && category !== 'All') {
                 expression = {
-                    type: 'conjunction',
-                    conjunction: {
-                        operator: 'and',
-                        expressions: [
-                            expression,
-                            {
-                                type: 'comparison',
-                                comparison: {
-                                    operator: 'string_like',
-                                    pid: topicPid,
-                                    value: category,
-                                },
+                    type: 'and',
+                    and: [
+                        expression,
+                        {
+                            type: 'comparison',
+                            comparison: {
+                                operator: 'string_like',
+                                pid: topicPid,
+                                value: category,
                             },
-                        ],
-                    },
+                        },
+                    ],
                 };
             }
 
