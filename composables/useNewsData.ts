@@ -36,12 +36,23 @@ export function useNewsData() {
 
     async function initializeSchema() {
         const schema = await client.getSchema();
+
+        console.log('[useNewsData] Schema response keys:', Object.keys(schema));
+        console.log('[useNewsData] Has schema.schema?', !!schema.schema);
+        console.log('[useNewsData] Has schema.flavors?', !!(schema as any).flavors);
+
         const properties = schema.schema?.properties ?? (schema as any).properties ?? [];
         const flavors = schema.schema?.flavors ?? (schema as any).flavors ?? [];
 
+        console.log('[useNewsData] Flavors count:', flavors.length);
+        console.log('[useNewsData] Properties count:', properties.length);
+
         const pidMap = new Map(properties.map((p: any) => [p.name, p.pid]));
 
-        articlePid = flavors.find((f: any) => f.name === 'article')?.findex ?? null;
+        const articleFlavor = flavors.find((f: any) => f.name === 'article');
+        console.log('[useNewsData] Article flavor found:', articleFlavor);
+
+        articlePid = articleFlavor?.findex ?? null;
         titlePid = pidMap.get('title') ?? null;
         sentimentPid = pidMap.get('sentiment') ?? null;
         appearsInPid = pidMap.get('appears_in') ?? null;
@@ -49,6 +60,8 @@ export function useNewsData() {
         topicPid = pidMap.get('has_topic') ?? null;
         newsdataIdPid = pidMap.get('newsdata_id') ?? null;
         namePid = pidMap.get('name') ?? 8;
+
+        console.log('[useNewsData] Initialized - articlePid:', articlePid, 'titlePid:', titlePid);
     }
 
     async function fetchLatestNews(limit = 50, category?: string) {
