@@ -1,0 +1,27 @@
+# Broadchurch project configuration
+# Auto-generated during tenant provisioning.
+
+gcp:
+  project: broadchurch
+  region: us-central1
+  staging_bucket: broadchurch-agent-staging
+
+tenant:
+  project_name: "bc-mcp-test-01"
+  display_name: "Pulse — Live News Intelligence"
+  org_id: "org_whBuw1Hin0HmU2Bx"
+  service_account: "tenant-whbuw1hin0hmu2bx@broadchurch.iam.gserviceaccount.com"
+
+gateway:
+  url: "https://broadchurch-portal-194773164895.us-central1.run.app"
+  qs_api_key: "d3a5df4a6b8403ad69ae3173aa4eddce13e9c54ad60919a0a033a001db9ad096"
+
+query_server:
+  url: "https://query.news.prod.g.lovelace.ai"
+  audience: "queryserver:api"
+
+auth:
+  client_id: "KGVMHWu8Q9FCPRuDag8OE8wmV4ibktqS"
+  audience: "queryserver:api"
+
+agents: {}
