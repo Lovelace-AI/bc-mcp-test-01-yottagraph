@@ -26,7 +26,8 @@ export function useTrendingEntities() {
             const flavors = schema.schema?.flavors ?? (schema as any).flavors ?? [];
 
             const pidMap = new Map(properties.map((p: any) => [p.name, p.pid]));
-            const articleFid = flavors.find((f: any) => f.name === 'article')?.findex ?? null;
+            const articleFlavor = flavors.find((f: any) => f.name === 'article');
+            const articleFid = articleFlavor?.fid ?? articleFlavor?.findex ?? null;
             const appearsInPid = pidMap.get('appears_in') ?? null;
             const namePid = pidMap.get('name') ?? 8;
             const entitySentimentPid = pidMap.get('entity_sentiment') ?? null;

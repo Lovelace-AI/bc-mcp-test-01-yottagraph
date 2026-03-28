@@ -42,7 +42,8 @@ export function useEntitySearch() {
             const pidMap = new Map(properties.map((p: any) => [p.name, p.pid]));
             const namePid = pidMap.get('name') ?? 8;
             const titlePid = pidMap.get('title') ?? null;
-            const articleFid = flavors.find((f: any) => f.name === 'article')?.findex ?? null;
+            const articleFlavor = flavors.find((f: any) => f.name === 'article');
+            const articleFid = articleFlavor?.fid ?? articleFlavor?.findex ?? null;
 
             const entityResults = await client.findEntities({
                 expression: JSON.stringify({

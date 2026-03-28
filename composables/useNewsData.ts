@@ -52,7 +52,8 @@ export function useNewsData() {
         const articleFlavor = flavors.find((f: any) => f.name === 'article');
         console.log('[useNewsData] Article flavor found:', articleFlavor);
 
-        articlePid = articleFlavor?.findex ?? null;
+        // Use fid (from generated client) or findex (from direct API) - they're the same value
+        articlePid = articleFlavor?.fid ?? articleFlavor?.findex ?? null;
         titlePid = pidMap.get('title') ?? null;
         sentimentPid = pidMap.get('sentiment') ?? null;
         appearsInPid = pidMap.get('appears_in') ?? null;
