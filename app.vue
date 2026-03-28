@@ -1,9 +1,9 @@
 <template>
-    <v-app class="theme-brand">
+    <v-app class="theme-brand pulse-app">
         <template v-if="showAppFramework">
-            <AppHeader />
+            <PulseHeader />
 
-            <v-main class="fill-height">
+            <v-main class="fill-height pulse-main">
                 <ServerStatus />
                 <NuxtPage />
             </v-main>
@@ -43,3 +43,13 @@
         return true;
     });
 </script>
+
+<style>
+    .pulse-app {
+        background: #0f1419 !important;
+    }
+
+    .pulse-main {
+        background: #0f1419 !important;
+    }
+</style>

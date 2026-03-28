@@ -80,8 +80,59 @@ Pulse is not another RSS reader. It's a **signal-over-noise** news experience: a
 
 ## Status
 
-Project just created. Run `/build_my_app` in Cursor to start building.
+✅ **Initial application scaffolded** — All core features implemented:
+
+- Live news feed with auto-refresh
+- Hero story card featuring most impactful article
+- Category filtering (All, Markets, Tech, Politics, Science, Crypto)
+- Story detail pages with entity tags and sentiment analysis
+- Entity spotlight pages with news timeline and sentiment trends
+- Trending entities sidebar
+- Search functionality across stories and entities
+- Mobile-responsive design
 
 ## Modules
 
-_None yet — the agent will populate this as features are built._
+### Composables (`/composables`)
+
+- **useNewsData.ts** — Fetches and manages news articles from the Elemental API. Handles auto-refresh, category filtering, and entity extraction.
+- **useTrendingEntities.ts** — Calculates trending entities based on mention frequency and sentiment across recent news.
+- **useEntitySearch.ts** — Provides debounced search across entities and stories with grouped results.
+
+### Components (`/components`)
+
+- **PulseHeader.vue** — Custom app header with Pulse branding and search/settings/user menu.
+- **NewsCard.vue** — Compact news card for feed display with headline, source, timestamp, entities, and sentiment.
+- **HeroStoryCard.vue** — Large featured story card for top story of the day.
+- **EntityChip.vue** — Clickable entity tag with sentiment-based color coding.
+- **SentimentIndicator.vue** — Color-coded sentiment dot/badge (blue=positive, coral=negative, gray=neutral).
+- **CategoryTabs.vue** — Filter tabs for news categories.
+- **TrendingSidebar.vue** — Right sidebar showing top 10 trending entities with mention counts and sentiment direction.
+- **SentimentSparkline.vue** — 7-day sentiment trend chart using Vuetify sparkline.
+
+### Pages (`/pages`)
+
+- **index.vue** — Home page with hero story, streaming feed, category tabs, and trending sidebar (3-column layout on desktop).
+- **story/[id].vue** — Story detail page with full article view, tagged entities, sentiment breakdown, and link to source.
+- **entity/[id].vue** — Entity spotlight page with entity metadata, recent news timeline, sentiment trend chart, and related entities.
+- **search.vue** — Search results page with grouped results for entities and stories.
+
+### Data Flow
+
+All data flows through the Elemental API via `useElementalClient()`:
+
+1. Schema discovery on app init to get entity types (flavors) and property IDs (PIDs)
+2. News articles fetched via `findEntities()` on the `article` flavor
+3. Entity mentions extracted from `appears_in` relationship with attributes for sentiment
+4. Related entities discovered via co-appearance in articles
+5. User's preferred category persisted in KV storage via `Pref<string>`
+
+### Design Implementation
+
+- Dark theme (#0F1419 background) with electric blue (#1DA1F2) accents
+- Sentiment colors: Blue (positive), Coral (#E0245E) (negative), Gray (#8899A6) (neutral)
+- 3-column desktop layout: main feed | content | trending sidebar
+- Single-column mobile layout (collapses at 960px breakpoint)
+- Auto-refresh every 60 seconds for feed, 5 minutes for trending sidebar
+- Skeleton loaders for all async content
+- Smooth animations and hover effects on cards
